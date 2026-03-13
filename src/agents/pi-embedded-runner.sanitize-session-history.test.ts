@@ -175,14 +175,14 @@ describe("sanitizeSessionHistory", () => {
     });
   });
 
-  it("sanitizes tool call ids with strict9 for Mistral models", async () => {
+  it("sanitizes tool call ids with strict9 for Mistral providers", async () => {
     setNonGoogleModelApi();
 
     await sanitizeSessionHistory({
       messages: mockMessages,
       modelApi: "openai-responses",
-      provider: "openrouter",
-      modelId: "mistralai/devstral-2512:free",
+      provider: "mistral",
+      modelId: "codestral-latest",
       sessionManager: mockSessionManager,
       sessionId: TEST_SESSION_ID,
     });
@@ -720,17 +720,7 @@ describe("sanitizeSessionHistory", () => {
     ).toBe(false);
   });
 
-  it("drops assistant thinking blocks for github-copilot models", async () => {
-    setNonGoogleModelApi();
-
-    const messages = makeThinkingAndTextAssistantMessages("reasoning_text");
-
-    const result = await sanitizeGithubCopilotHistory({ messages });
-    const assistant = getAssistantMessage(result);
-    expect(assistant.content).toEqual([{ type: "text", text: "hi" }]);
-  });
-
-  it("preserves assistant turn when all content is thinking blocks (github-copilot)", async () => {
+  it("drops thinking blocks from older github-copilot assistant turns", async () => {
     setNonGoogleModelApi();
 
     const messages: AgentMessage[] = [
@@ -738,22 +728,50 @@ describe("sanitizeSessionHistory", () => {
       makeAssistantMessage([
         {
           type: "thinking",
-          thinking: "some reasoning",
+          thinking: "older reasoning",
           thinkingSignature: "reasoning_text",
         },
+        { type: "text", text: "older answer" },
       ]),
       makeUserMessage("follow up"),
+      makeAssistantMessage([{ type: "text", text: "latest answer" }]),
     ];
 
     const result = await sanitizeGithubCopilotHistory({ messages });
-
-    // Assistant turn should be preserved (not dropped) to maintain turn alternation
-    expect(result).toHaveLength(3);
     const assistant = getAssistantMessage(result);
-    expect(assistant.content).toEqual([{ type: "text", text: "" }]);
+    expect(assistant.content).toEqual([{ type: "text", text: "older answer" }]);
   });
 
-  it("preserves tool_use blocks when dropping thinking blocks (github-copilot)", async () => {
+  it("preserves the latest github-copilot assistant turn unchanged", async () => {
+    setNonGoogleModelApi();
+
+    const messages: AgentMessage[] = [
+      makeUserMessage("hello"),
+      makeAssistantMessage([{ type: "text", text: "previous answer" }]),
+      makeUserMessage("follow up"),
+      makeAssistantMessage([
+        {
+          type: "thinking",
+          thinking: "some reasoning",
+          thinkingSignature: "reasoning_text",
+        },
+        { type: "text", text: "latest answer" },
+      ]),
+    ];
+
+    const result = await sanitizeGithubCopilotHistory({ messages });
+    const latestAssistant = result.at(-1) as Extract<AgentMessage, { role: "assistant" }>;
+    expect(latestAssistant.content).toEqual([
+      {
+        type: "thinking",
+        thinking: "some reasoning",
+        thinkingSignature: "reasoning_text",
+      },
+      { type: "text", text: "latest answer" },
+    ]);
+  });
+
+  it("preserves tool_use blocks when dropping thinking blocks from older github-copilot turns", async () => {
     setNonGoogleModelApi();
 
     const messages: AgentMessage[] = [
@@ -767,6 +785,8 @@ describe("sanitizeSessionHistory", () => {
         { type: "toolCall", id: "tool_123", name: "read", arguments: { path: "/tmp/test" } },
         { type: "text", text: "Let me read that file." },
       ]),
+      makeUserMessage("keep latest stable"),
+      makeAssistantMessage([{ type: "text", text: "latest answer" }]),
     ];
 
     const result = await sanitizeGithubCopilotHistory({ messages });
@@ -792,6 +812,35 @@ describe("sanitizeSessionHistory", () => {
 
     const types = getAssistantContentTypes(result);
     expect(types).toContain("thinking");
+  });
+
+  it("preserves the latest anthropic assistant turn with thinking blocks verbatim", async () => {
+    setNonGoogleModelApi();
+
+    const messages: AgentMessage[] = [
+      makeUserMessage("hello"),
+      makeAssistantMessage(
+        [
+          { type: "text", text: "previous answer" },
+          { type: "thinking", thinking: "latest reasoning", thinkingSignature: "sig" },
+          { type: "text", text: "" },
+          { type: "text", text: "latest answer" },
+        ],
+        { timestamp: nextTimestamp() },
+      ),
+      makeUserMessage("follow up"),
+    ];
+
+    const result = await sanitizeSessionHistory({
+      messages,
+      modelApi: "anthropic-messages",
+      provider: "anthropic",
+      modelId: "claude-opus-4-6",
+      sessionManager: makeMockSessionManager(),
+      sessionId: TEST_SESSION_ID,
+    });
+
+    expect(result[1]).toEqual(messages[1]);
   });
 
   it("does not drop thinking blocks for non-claude copilot models", async () => {

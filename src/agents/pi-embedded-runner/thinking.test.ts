@@ -58,4 +58,34 @@ describe("dropThinkingBlocks", () => {
     const assistant = result[0] as Extract<AgentMessage, { role: "assistant" }>;
     expect(assistant.content).toEqual([{ type: "text", text: "" }]);
   });
+
+  it("preserves the latest assistant turn when requested", () => {
+    const messages: AgentMessage[] = [
+      castAgentMessage({ role: "user", content: "hello" }),
+      castAgentMessage({
+        role: "assistant",
+        content: [
+          { type: "thinking", thinking: "older reasoning" },
+          { type: "text", text: "older answer" },
+        ],
+      }),
+      castAgentMessage({ role: "user", content: "follow up" }),
+      castAgentMessage({
+        role: "assistant",
+        content: [
+          { type: "thinking", thinking: "latest reasoning" },
+          { type: "text", text: "latest answer" },
+        ],
+      }),
+    ];
+
+    const result = dropThinkingBlocks(messages, { preserveLatestAssistant: true });
+    const olderAssistant = result[1] as Extract<AgentMessage, { role: "assistant" }>;
+    const latestAssistant = result[3] as Extract<AgentMessage, { role: "assistant" }>;
+    expect(olderAssistant.content).toEqual([{ type: "text", text: "older answer" }]);
+    expect(latestAssistant.content).toEqual([
+      { type: "thinking", thinking: "latest reasoning" },
+      { type: "text", text: "latest answer" },
+    ]);
+  });
 });

@@ -73,11 +73,7 @@ import {
   EMBEDDED_COMPACTION_TIMEOUT_MS,
 } from "./compaction-safety-timeout.js";
 import { buildEmbeddedExtensionFactories } from "./extensions.js";
-import {
-  logToolSchemasForGoogle,
-  sanitizeSessionHistory,
-  sanitizeToolsForGoogle,
-} from "./google.js";
+import { logToolSchemasForGoogle, sanitizeToolsForGoogle } from "./google.js";
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "./history.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
@@ -92,6 +88,7 @@ import {
 } from "./system-prompt.js";
 import { collectAllowedToolNames } from "./tool-name-allowlist.js";
 import { splitSdkTools } from "./tool-split.js";
+import { sanitizeSessionHistory } from "./transcript-hygiene.js";
 import type { EmbeddedPiCompactResult } from "./types.js";
 import { describeUnknownError, mapThinkingLevel } from "./utils.js";
 import { flushPendingToolResultsAfterIdle } from "./wait-for-idle-before-flush.js";

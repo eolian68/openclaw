@@ -12,6 +12,15 @@ export function isAssistantMessageWithContent(message: AgentMessage): message is
   );
 }
 
+function findLatestAssistantMessageIndex(messages: AgentMessage[]): number {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    if (isAssistantMessageWithContent(messages[i])) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 /**
  * Strip all `type: "thinking"` content blocks from assistant messages.
  *
@@ -19,14 +28,29 @@ export function isAssistantMessageWithContent(message: AgentMessage): message is
  * a synthetic `{ type: "text", text: "" }` block to preserve turn structure
  * (some providers require strict user/assistant alternation).
  *
+ * When `preserveLatestAssistant` is enabled, the most recent assistant turn is
+ * left untouched. Anthropic-backed endpoints require the latest assistant
+ * message to preserve its original `thinking` blocks on replay.
+ *
  * Returns the original array reference when nothing was changed (callers can
  * use reference equality to skip downstream work).
  */
-export function dropThinkingBlocks(messages: AgentMessage[]): AgentMessage[] {
+export function dropThinkingBlocks(
+  messages: AgentMessage[],
+  opts?: { preserveLatestAssistant?: boolean },
+): AgentMessage[] {
   let touched = false;
   const out: AgentMessage[] = [];
-  for (const msg of messages) {
+  const latestAssistantIndex = opts?.preserveLatestAssistant
+    ? findLatestAssistantMessageIndex(messages)
+    : -1;
+  for (let index = 0; index < messages.length; index += 1) {
+    const msg = messages[index];
     if (!isAssistantMessageWithContent(msg)) {
+      out.push(msg);
+      continue;
+    }
+    if (index === latestAssistantIndex) {
       out.push(msg);
       continue;
     }

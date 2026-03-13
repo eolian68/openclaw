@@ -57,7 +57,7 @@ export function makeSimpleUserMessages(): AgentMessage[] {
 export async function loadSanitizeSessionHistoryWithCleanMocks(): Promise<SanitizeSessionHistoryFn> {
   vi.resetAllMocks();
   vi.mocked(helpers.sanitizeSessionMessagesImages).mockImplementation(async (msgs) => msgs);
-  const mod = await import("./pi-embedded-runner/google.js");
+  const mod = await import("./pi-embedded-runner/transcript-hygiene.js");
   return mod.sanitizeSessionHistory;
 }
 

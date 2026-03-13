@@ -99,11 +99,7 @@ import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-tt
 import type { CompactEmbeddedPiSessionParams } from "../compact.js";
 import { buildEmbeddedExtensionFactories } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
-import {
-  logToolSchemasForGoogle,
-  sanitizeSessionHistory,
-  sanitizeToolsForGoogle,
-} from "../google.js";
+import { logToolSchemasForGoogle, sanitizeToolsForGoogle } from "../google.js";
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "../history.js";
 import { log } from "../logger.js";
 import { buildModelAliasLines } from "../model.js";
@@ -125,6 +121,7 @@ import { dropThinkingBlocks } from "../thinking.js";
 import { collectAllowedToolNames } from "../tool-name-allowlist.js";
 import { installToolResultContextGuard } from "../tool-result-context-guard.js";
 import { splitSdkTools } from "../tool-split.js";
+import { sanitizeSessionHistory } from "../transcript-hygiene.js";
 import { describeUnknownError, mapThinkingLevel } from "../utils.js";
 import { flushPendingToolResultsAfterIdle } from "../wait-for-idle-before-flush.js";
 import { waitForCompactionRetryWithAggregateTimeout } from "./compaction-retry-aggregate-timeout.js";
@@ -1774,9 +1771,10 @@ export async function runEmbeddedAttempt(
         activeSession.agent.streamFn = cacheTrace.wrapStreamFn(activeSession.agent.streamFn);
       }
 
-      // Copilot/Claude can reject persisted `thinking` blocks (e.g. thinkingSignature:"reasoning_text")
-      // on *any* follow-up provider call (including tool continuations). Wrap the stream function
-      // so every outbound request sees sanitized messages.
+      // Copilot/Claude can reject persisted `thinking` blocks on replay, but
+      // Anthropic also requires the latest assistant turn to stay byte-for-byte
+      // stable. Strip older replayed thinking blocks while preserving the most
+      // recent assistant message for every outbound request.
       if (transcriptPolicy.dropThinkingBlocks) {
         const inner = activeSession.agent.streamFn;
         activeSession.agent.streamFn = (model, context, options) => {
@@ -1785,7 +1783,9 @@ export async function runEmbeddedAttempt(
           if (!Array.isArray(messages)) {
             return inner(model, context, options);
           }
-          const sanitized = dropThinkingBlocks(messages as unknown as AgentMessage[]) as unknown;
+          const sanitized = dropThinkingBlocks(messages as unknown as AgentMessage[], {
+            preserveLatestAssistant: true,
+          }) as unknown;
           if (sanitized === messages) {
             return inner(model, context, options);
           }

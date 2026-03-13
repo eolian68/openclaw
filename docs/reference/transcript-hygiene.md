@@ -37,7 +37,7 @@ If you need transcript storage details, see:
 All transcript hygiene is centralized in the embedded runner:
 
 - Policy selection: `src/agents/transcript-policy.ts`
-- Sanitization/repair application: `sanitizeSessionHistory` in `src/agents/pi-embedded-runner/google.ts`
+- Sanitization/repair application: `sanitizeSessionHistory` in `src/agents/pi-embedded-runner/transcript-hygiene.ts`
 
 The policy uses `provider`, `modelApi`, and `modelId` to decide what to apply.
 
@@ -118,6 +118,12 @@ external end-user instructions.
 
 - Tool result pairing repair and synthetic tool results.
 - Turn validation (merge consecutive user turns to satisfy strict alternation).
+- Preserve the latest assistant turn verbatim when it contains `thinking`/`redacted_thinking` blocks.
+
+**GitHub Copilot Claude**
+
+- Drop persisted `thinking` blocks from older assistant turns with invalid Copilot signatures.
+- Preserve the latest assistant turn unchanged so Anthropic replay requirements stay intact.
 
 **Mistral (including model-id based detection)**
 
