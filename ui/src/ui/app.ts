@@ -235,6 +235,13 @@ export class OpenClawApp extends LitElement {
   @state() aiAgentsActiveSection: string | null = null;
   @state() aiAgentsActiveSubsection: string | null = null;
 
+  @state() modelConfigBaseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+  @state() modelConfigApiKey = "";
+  @state() modelConfigModelId = "qwen3-vl-plus";
+  @state() modelConfigSaving = false;
+  @state() modelConfigError: string | null = null;
+  @state() modelConfigSuccess = false;
+
   @state() channelsLoading = false;
   @state() channelsSnapshot: ChannelsStatusSnapshot | null = null;
   @state() channelsError: string | null = null;

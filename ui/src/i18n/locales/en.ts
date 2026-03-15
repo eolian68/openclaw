@@ -16,6 +16,7 @@ export const en: TranslationMap = {
     theme: "Theme",
     resources: "Resources",
     search: "Search",
+    saving: "Saving...",
   },
   nav: {
     chat: "Chat",
@@ -38,6 +39,7 @@ export const en: TranslationMap = {
     nodes: "Nodes",
     chat: "Chat",
     config: "Config",
+    modelConfig: "Model Config",
     communications: "Communications",
     appearance: "Appearance",
     automation: "Automation",
@@ -58,6 +60,7 @@ export const en: TranslationMap = {
     nodes: "Paired devices and commands.",
     chat: "Gateway chat for quick interventions.",
     config: "Edit openclaw.json.",
+    modelConfig: "Configure DashScope/Qwen3 model, base URL, and API key.",
     communications: "Channels, messages, and audio settings.",
     appearance: "Theme, UI, and setup wizard settings.",
     automation: "Commands, hooks, cron, and plugins.",
@@ -65,6 +68,18 @@ export const en: TranslationMap = {
     aiAgents: "Agents, models, skills, tools, memory, session.",
     debug: "Snapshots, events, RPC.",
     logs: "Live gateway logs.",
+  },
+  modelConfig: {
+    title: "Model Configuration",
+    subtitle: "Configure DashScope/Qwen3 (Alibaba Cloud 百炼) API for qwen3-vl-plus.",
+    hint: "Enter Base URL, API Key, and Model ID. Values are saved to .env and config.",
+    baseUrl: "Base URL",
+    apiKey: "API Key",
+    modelId: "Model ID",
+    save: "Save",
+    update: "Update",
+    configured: "Already configured.",
+    saved: "Saved successfully.",
   },
   overview: {
     access: {

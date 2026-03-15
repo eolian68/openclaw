@@ -140,6 +140,12 @@ export type AppViewState = {
   aiAgentsSearchQuery: string;
   aiAgentsActiveSection: string | null;
   aiAgentsActiveSubsection: string | null;
+  modelConfigBaseUrl: string;
+  modelConfigApiKey: string;
+  modelConfigModelId: string;
+  modelConfigSaving: boolean;
+  modelConfigError: string | null;
+  modelConfigSuccess: boolean;
   channelsLoading: boolean;
   channelsSnapshot: ChannelsStatusSnapshot | null;
   channelsError: string | null;

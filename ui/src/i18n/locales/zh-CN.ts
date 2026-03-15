@@ -15,6 +15,7 @@ export const zh_CN: TranslationMap = {
     docs: "文档",
     resources: "资源",
     search: "搜索",
+    saving: "保存中...",
   },
   nav: {
     chat: "聊天",
@@ -37,6 +38,7 @@ export const zh_CN: TranslationMap = {
     nodes: "节点",
     chat: "聊天",
     config: "配置",
+    modelConfig: "模型配置",
     communications: "通信",
     appearance: "外观与设置",
     automation: "自动化",
@@ -57,6 +59,7 @@ export const zh_CN: TranslationMap = {
     nodes: "配对设备和命令。",
     chat: "网关聊天，快速干预。",
     config: "编辑 openclaw.json。",
+    modelConfig: "配置 DashScope/Qwen3 模型、Base URL 和 API Key。",
     communications: "频道、消息和音频设置。",
     appearance: "主题、界面和设置向导设置。",
     automation: "命令、钩子、定时任务和插件设置。",
@@ -64,6 +67,18 @@ export const zh_CN: TranslationMap = {
     aiAgents: "代理、模型、技能、工具、记忆和会话设置。",
     debug: "快照、事件、RPC。",
     logs: "实时网关日志。",
+  },
+  modelConfig: {
+    title: "模型配置",
+    subtitle: "配置 DashScope/Qwen3（阿里云百炼）API，用于 qwen3-vl-plus。",
+    hint: "填写 Base URL、API Key 和 Model ID。值将保存到 .env 和 config。",
+    baseUrl: "Base URL",
+    apiKey: "API Key",
+    modelId: "Model ID",
+    save: "保存",
+    update: "更新",
+    configured: "已配置。",
+    saved: "保存成功。",
   },
   overview: {
     access: {

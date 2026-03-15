@@ -34,7 +34,7 @@ import {
 import { saveSettings, type UiSettings } from "./storage.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
 import { resolveTheme, type ResolvedTheme, type ThemeMode, type ThemeName } from "./theme.ts";
-import type { AgentsListResult, AttentionItem } from "./types.ts";
+import type { AgentsListResult, AttentionItem, ConfigSnapshot } from "./types.ts";
 import { resetChatViewState } from "./views/chat.ts";
 
 type SettingsHost = {
@@ -58,6 +58,10 @@ type SettingsHost = {
   pendingGatewayUrl?: string | null;
   systemThemeCleanup?: (() => void) | null;
   pendingGatewayToken?: string | null;
+  configSnapshot?: ConfigSnapshot | null;
+  modelConfigBaseUrl?: string;
+  modelConfigApiKey?: string;
+  modelConfigModelId?: string;
 };
 
 export function applySettings(host: SettingsHost, next: UiSettings) {
@@ -257,10 +261,20 @@ export async function refreshActiveTab(host: SettingsHost) {
     host.tab === "appearance" ||
     host.tab === "automation" ||
     host.tab === "infrastructure" ||
-    host.tab === "aiAgents"
+    host.tab === "aiAgents" ||
+    host.tab === "modelConfig"
   ) {
     await loadConfigSchema(host as unknown as OpenClawApp);
     await loadConfig(host as unknown as OpenClawApp);
+    if (host.tab === "modelConfig" && host.configSnapshot?.config) {
+      const { applyModelConfigFromSnapshotToHost } = await import(
+        "./controllers/model-config.ts"
+      );
+      applyModelConfigFromSnapshotToHost(
+        host as unknown as Parameters<typeof applyModelConfigFromSnapshotToHost>[0],
+        host.configSnapshot!.config as Record<string, unknown>,
+      );
+    }
   }
   if (host.tab === "debug") {
     await loadDebug(host as unknown as OpenClawApp);

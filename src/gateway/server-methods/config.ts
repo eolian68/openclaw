@@ -1,5 +1,6 @@
 import { exec } from "node:child_process";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
+import { resetModelCatalogCacheForTest } from "../../agents/model-catalog.js";
 import { listChannelPlugins } from "../../channels/plugins/index.js";
 import {
   createConfigIO,
@@ -428,6 +429,7 @@ export const configHandlers: GatewayRequestHandlers = {
       `config.patch write ${formatControlPlaneActor(actor)} changedPaths=${summarizeChangedPaths(changedPaths)} restartReason=config.patch`,
     );
     await writeConfigFile(validated.config, writeOptions);
+    resetModelCatalogCacheForTest();
 
     const { sessionKey, note, restartDelayMs, deliveryContext, threadId } =
       resolveConfigRestartRequest(params);

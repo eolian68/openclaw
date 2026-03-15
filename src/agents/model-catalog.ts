@@ -40,7 +40,7 @@ const OPENAI_GPT54_PRO_MODEL_ID = "gpt-5.4-pro";
 const OPENAI_CODEX_GPT53_MODEL_ID = "gpt-5.3-codex";
 const OPENAI_CODEX_GPT53_SPARK_MODEL_ID = "gpt-5.3-codex-spark";
 const OPENAI_CODEX_GPT54_MODEL_ID = "gpt-5.4";
-const NON_PI_NATIVE_MODEL_PROVIDERS = new Set(["kilocode"]);
+const NON_PI_NATIVE_MODEL_PROVIDERS = new Set(["kilocode", "dashscope-qwen3"]);
 
 type SyntheticCatalogFallback = {
   provider: string;
@@ -206,6 +206,10 @@ export async function loadModelCatalog(params?: {
     const models: ModelCatalogEntry[] = [];
     const sortModels = (entries: ModelCatalogEntry[]) =>
       entries.sort((a, b) => {
+        const aCustom = NON_PI_NATIVE_MODEL_PROVIDERS.has(a.provider.toLowerCase().trim());
+        const bCustom = NON_PI_NATIVE_MODEL_PROVIDERS.has(b.provider.toLowerCase().trim());
+        if (aCustom && !bCustom) return -1;
+        if (!aCustom && bCustom) return 1;
         const p = a.provider.localeCompare(b.provider);
         if (p !== 0) {
           return p;

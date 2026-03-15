@@ -32,6 +32,10 @@ import {
   removeConfigFormValue,
 } from "./controllers/config.ts";
 import {
+  applyModelConfigFromSnapshot,
+  saveModelConfigFromHost,
+} from "./controllers/model-config.ts";
+import {
   loadCronRuns,
   loadMoreCronJobs,
   loadMoreCronRuns,
@@ -124,6 +128,7 @@ const lazyCron = createLazy(() => import("./views/cron.ts"));
 const lazyDebug = createLazy(() => import("./views/debug.ts"));
 const lazyInstances = createLazy(() => import("./views/instances.ts"));
 const lazyLogs = createLazy(() => import("./views/logs.ts"));
+const lazyModelConfig = createLazy(() => import("./views/model-config.ts"));
 const lazyNodes = createLazy(() => import("./views/nodes.ts"));
 const lazySessions = createLazy(() => import("./views/sessions.ts"));
 const lazySkills = createLazy(() => import("./views/skills.ts"));
@@ -1856,6 +1861,30 @@ export function renderApp(state: AppViewState) {
                 includeSections: [...AI_AGENTS_SECTION_KEYS],
                 includeVirtualSections: false,
               })
+            : nothing
+        }
+
+        ${
+          state.tab === "modelConfig"
+            ? lazyRender(lazyModelConfig, (m) =>
+                m.renderModelConfig({
+                  baseUrl: state.modelConfigBaseUrl,
+                  apiKey: state.modelConfigApiKey,
+                  modelId: state.modelConfigModelId,
+                  saving: state.modelConfigSaving,
+                  error: state.modelConfigError,
+                  success: state.modelConfigSuccess,
+                  configured: (() => {
+                    const cfg = state.configSnapshot?.config as Record<string, unknown> | null;
+                    const providers = (cfg?.models as Record<string, unknown> | undefined)?.providers as Record<string, unknown> | undefined;
+                    return Boolean(providers?.["dashscope-qwen3"]);
+                  })(),
+                  onBaseUrlChange: (next) => (state.modelConfigBaseUrl = next),
+                  onApiKeyChange: (next) => (state.modelConfigApiKey = next),
+                  onModelIdChange: (next) => (state.modelConfigModelId = next),
+                  onSave: () => saveModelConfigFromHost(state),
+                }),
+              )
             : nothing
         }
 

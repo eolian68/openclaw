@@ -11,6 +11,7 @@ import { channelsHandlers } from "./server-methods/channels.js";
 import { chatHandlers } from "./server-methods/chat.js";
 import { configHandlers } from "./server-methods/config.js";
 import { connectHandlers } from "./server-methods/connect.js";
+import { envHandlers } from "./server-methods/env.js";
 import { cronHandlers } from "./server-methods/cron.js";
 import { deviceHandlers } from "./server-methods/devices.js";
 import { doctorHandlers } from "./server-methods/doctor.js";
@@ -35,7 +36,12 @@ import { voicewakeHandlers } from "./server-methods/voicewake.js";
 import { webHandlers } from "./server-methods/web.js";
 import { wizardHandlers } from "./server-methods/wizard.js";
 
-const CONTROL_PLANE_WRITE_METHODS = new Set(["config.apply", "config.patch", "update.run"]);
+const CONTROL_PLANE_WRITE_METHODS = new Set([
+  "config.apply",
+  "config.patch",
+  "env.patch",
+  "update.run",
+]);
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {
   if (!client?.connect) {
     return null;
@@ -79,6 +85,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...webHandlers,
   ...modelsHandlers,
   ...configHandlers,
+  ...envHandlers,
   ...wizardHandlers,
   ...talkHandlers,
   ...toolsCatalogHandlers,
